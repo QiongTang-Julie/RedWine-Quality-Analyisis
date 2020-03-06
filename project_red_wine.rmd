@@ -1,0 +1,963 @@
+# Red Wine Exploration by Julie Tang
+
+========================================================
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that will be used in the analysis in this code
+# chunk.
+
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(RColorBrewer)
+library(scales)
+library(GGally)
+library(stats)
+library(memisc)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
+# Load the Data
+
+red_wine <- read.csv('wineQualityReds.csv')
+
+```
+
+This report explores a dataset containing the quality and 
+attributes of 1599 red wine samples.
+
+
+# Univariate Plots Section
+
+Check the structure of the dataset
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, dataset_structure}
+str(red_wine)
+
+```
+
+Check if there is any missing data in this dataset
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, any_missing_data}
+
+sapply(red_wine, function(x) sum(is.na(x)))
+
+```
+
+Take a look at the summary data
+
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, dataset_summary}
+summary(red_wine)
+
+```
+
+
+Our dataset consists of 13 variables and 1599 samples.The data type of every
+attribute is good and there is no missing data in this dataset. The output
+variable, quality, is our interest to analyze.
+
+
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, Univariate_quality}
+      
+ggplot(data = red_wine, aes(x = factor(quality))) +
+  geom_bar() +
+  xlab('quality') +
+  ylab('count') 
+
+```
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, summary_quality}
+
+summary(red_wine$quality)
+table(red_wine$quality)
+
+```
+
+
+Quality is a discrete quantitative variable. The range of quality variable 
+is from 3(lowest) to 8(highest). And the most common level of qualities are 5 and 6. 681 samples'
+quality rate is 5 and 638 samples' quality rate is 6.
+
+
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots_pH}
+
+qplot(data = red_wine, x = pH, binwidth = 0.1, ylab = 'count') +
+  scale_x_continuous(breaks = seq(0, 4.01, 0.1))
+  
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE, summary_pH}
+
+summary(red_wine$pH)
+
+```
+
+The pH is normal distributed. The mean is 3.311 and the median is 3.310, 
+which are very close. According to some experts' opinion, pH is one
+of the most important attributes on the wine's quality. It affects almost every
+aspect of the wine, including the quality. I wondered what's its correlation
+with quality in our dataset.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots_alcohol}
+
+qplot(data = red_wine, x = alcohol, binwidth = 0.2, 
+      xlab = 'alcohol(%)', ylab = 'count') + 
+  scale_x_continuous(limits = c(8, 15), breaks = seq(8, 15, 0.5))
+
+```
+
+Try log10 transformation since the alcohol distribution is right skewed
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots_alcohol_log10}
+
+qplot(data = red_wine, x = alcohol, ylab = 'count', xlab = 'alcohol(log10)(%)') + 
+  scale_x_log10()
+
+```
+
+Try square root transformation to see if it will be more close to normal distribution.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_alcohol}
+
+qplot(data = red_wine, x = alcohol, ylab = 'count', xlab = 'alcohol(sqrt)(%)') + 
+  scale_x_sqrt()
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_summary}
+
+summary(red_wine$alcohol)
+
+```
+
+
+The distribution of percent alcohol content is right skewed. I tried to use 
+log and square root transformation but the distribution was still right skewed. 
+It seems the transformation doesn't affect it much. From the plot and summary 
+data, we can see the median value of percent alcohol content is about 10. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_sulphates}
+
+qplot(data = red_wine, x = sulphates, 
+      xlab = 'sulphates(g / dm^3)', ylab = 'count')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_sulphates_log}
+
+qplot(data = red_wine, x = sulphates, 
+      ylab = 'count', xlab = 'sulphates(log10)(g / dm^3)') + 
+  scale_x_log10()
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_sulphates}
+
+summary(red_wine$sulphates)
+
+```
+
+
+The distribution of sulphates is also right skewed. With log10 transformation,
+its distribution is normal. From the plot we can see most of samples have
+sulphates under 1.0. But there are some outliers with value much higher.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_total.so2}
+
+qplot(data = red_wine, x = total.sulfur.dioxide, 
+      xlab = 'total.sulfur.dioxide(mg / dm^3)', ylab = 'count')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_total.so2_log10}
+
+qplot(data = red_wine, x = total.sulfur.dioxide,
+      xlab = 'total.sulfur.dioxide(log10)(mg / dm^3)', ylab = 'count') + 
+  scale_x_log10()
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_total.sulfur.dioxide}
+
+summary(red_wine$total.sulfur.dioxide)
+
+```
+
+
+The distribution of total sulfur dioxide is also right skewed. With log10
+transformation, its distribution is close to normal. From the plot we can see 
+most of samples have total sulfur dioxide under 100. But there are a few 
+outliers with value around 300!
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_free.so2}
+
+qplot(data = red_wine, x = free.sulfur.dioxide, 
+      xlab = 'free.sulfur.dioxide(mg / dm^3)', ylab = 'count')
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_free.so2_log10}
+
+qplot(data = red_wine, x = free.sulfur.dioxide,
+      xlab = 'free.sulfur.dioxide(log10)(mg / dm^3)', ylab = 'count') + 
+  scale_x_log10()
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_free.sulfur.dioxide}
+
+summary(red_wine$free.sulfur.dioxide)
+
+```
+
+
+The distribution of free sulfur dioxide has multiple peaks after log10
+transformation. One is around 7, the second is around 14 and the third is
+around 30.
+
+
+Create a new variable (all.sulphates) by adding up total.sulfur.dioxide and 
+sulphates * 1000.
+```{r echo=FALSE, message=FALSE, warning=FALSE, new_variable_all_sulphates}
+
+red_wine <- transform(red_wine, 
+                      all.sulphates = total.sulfur.dioxide + sulphates * 1000)
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_all_sulphates}
+
+qplot(data = red_wine, x = all.sulphates, 
+      xlab = 'all.sulphates(mg / dm^3)', ylab = 'count')
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_all_sulphates_log10}
+
+qplot(data = red_wine, x = all.sulphates, 
+      xlab = 'all.sulphates(log10)(mg / dm^3)', ylab = 'count') + 
+  scale_x_log10()
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_all_sulphates}
+
+summary(red_wine$all.sulphates)
+
+```
+
+
+Since sulfur dioxide is just another type of sulphates. I think maybe we can
+add them up to create a new variable, all.sulphates, and check the correlation
+of this new variable with quality.
+
+The distribution of Sulphates, total.sulfur.dioxide, free.sulfur.dioxide and
+all.sulphates are all right skewed. With the log transformation, they are close
+to normal distribution. There are some outliers with very high 
+free.sulfur.dioxide and total.sulfur.dioxide. A new variable (all.surphates) is
+created to store the total sulphates content in the sample.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_fixed.acidity}
+
+qplot(data = red_wine, x = fixed.acidity, 
+      xlab = 'fixed.acidity(g / dm^3)', ylab = 'count') +
+  scale_x_continuous(limits = c(4, 16), breaks = seq(4, 16, 0.5) )
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_fixed.acidity}
+
+summary(red_wine$fixed.acidity)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_plots_volatile.acidity}
+
+qplot(data = red_wine, x = volatile.acidity, 
+      xlab = 'volatile.acidity(g / dm^3)', ylab = 'count')
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_volatile.acidity}
+
+summary(red_wine$volatile.acidity)
+
+```
+
+
+The distribution of both fixed.acidity and volatile.acidity are close to 
+normal distribution. But both have some outstanding outliers on upper side.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_density}
+
+qplot(data = red_wine, x = density, 
+      xlab = 'density(g / dm^3)', ylab = 'count')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_density}
+
+summary(red_wine$density)
+
+```
+
+The distribution of density is normal. And the range is very very small 
+(from 0.9901 to 1.0037). It seems it doesn't impact the quality much. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_residual.sugar}
+
+qplot(data = red_wine, x = residual.sugar, 
+      xlab = 'residual.sugar(g / dm^3)', ylab = 'count')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, univariate_residual.sugar_log10}
+
+qplot(data = red_wine, x = residual.sugar, 
+      xlab = 'residual.sugar(log10)(g / dm^3)', ylab = 'count') + 
+  scale_x_log10()
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_residual.sugar}
+
+summary(red_wine$residual.sugar)
+
+```
+
+
+The distribution of residual sugar is right skewed. With the log 
+transformation, it's better but still kind of right skewed. And the most of 
+sample's sugar level is between 2 and 3.
+
+
+
+# Univariate Analysis
+
+
+### What is the structure of your dataset?
+
+There are 1599 samples in the dataset with 13 variables. 11 are attributes that
+might impact the quality (fixed.acidity, volatile.acidity,, citric.acid, 
+residual.sugar, chlorides, free.sulfur.dioxide, total.sulfur.dioxide, density, 
+pH, sulphates and alcohol). All these attributes are quantitative variables. 
+Variable quality is the output variable, which is also the one we are intersted
+in. Quality is also quantified.
+
+Other observations:\
+1. Most of samples' quality rate is 5 or 6.\
+2. The density of all samples are very close. It has a very narrow range(from
+0.9901 to 1.0037). It seems it doesn't impact the quality much. \
+3. The median percent alcohol content is 10.2. But there are a few outlier 
+with value higher than 14.\
+4. The median pH value is 3.31 and it's normal distributed.\
+5. There are some outliers with very high free.sulfur.dioxide and 
+total.sulfur.dioxide. Since high sulphates is not good for health and according 
+to experts' opinion, it impact the taste of the wine too. Does higher wine 
+quality generally have lower sulphate/Sulfur dioxide content? 
+
+
+### What is/are the main feature(s) of interest in your dataset?
+
+The main feature of interest in the dataset is quality. I want
+to check which attributes have most important impact on the wine's quality.
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+Acidity, residual sugar, chlorides, sulfur dioxide, density, pH, sulphates and 
+alcohol likely all contribute to the quality of red wine. I think pH and 
+sulphates might contribute most to the quality according to some experts'
+opinion on the wine quality.
+
+### Did you create any new variables from existing variables in the dataset?
+
+Yes. I created a new variables named "all.sulphates". Since sulfur dioxide is 
+just another type of sulphates, I think it makes sense to add them up together 
+to see what impact they have on the quality.
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+I log-transformed the right skewed free.sulfur.dioxide, total.sulfur.dioxide, 
+sulphates and all.surphates distribution. The transformed distribution for these
+variables appeal close to normal. The median of all.surphates is 38.56. I also 
+noticed there are some outliers with super high surphate content.
+
+
+
+# Bivariate Plots Section
+
+Remove the first variable (X) before generating the correlation matrix, since 
+X is just an id for every sample
+```{r echo=FALSE, message=FALSE, warning=FALSE, pairs_plot}
+# remove the first variable (X) before generating the correlation matrix, since 
+# X is just an id for every sample.
+
+red_wine_temp <- subset(red_wine, select = -c(X, all.sulphates))
+
+ggcorr(red_wine_temp,
+       label = TRUE,
+       label_alpha = TRUE,
+       label_round = 2,
+       layout.exp = 2,
+       hjust = 1)
+
+#ggpairs(red_wine_temp) +
+#  theme(axis.ticks = element_blank(),
+#        axis.text = element_blank())
+
+```
+
+
+From the correlation matrix above, it looks to me that many attributes tend to 
+correlate with each other and also correlate with quality. But I don't see 
+either two have very strong correlation. I think it may be because the wine 
+quality somehow is very difficult to accurately describe and quantify. I suppose
+pH and sulphates impact the quality most according to the articles I read from 
+the website. However, from this plot, it looks alcohol has most correlation with
+the quality, very interesting.
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, summary_pH_quality_Plots}
+
+by(red_wine$pH, red_wine$quality, summary)
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Scatter_Plots_pH}
+
+ggplot(aes(x = pH, y = quality),
+       data = red_wine) +
+  geom_jitter(alpha = 0.25) +
+  stat_summary(fun.y = mean, geom = 'line', color = 'red')
+  
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_correlatio_pH_quality}
+
+cor.test(red_wine$pH, red_wine$quality)
+
+```
+
+
+From the scatter plot above, I can't tell if there is any correlation between
+pH and quailty. The Peason's correlation test also shows there is very week 
+correlation between them. The correlation value is just -0.058. Surprised!
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plots_sulphates}
+
+ggplot(aes(x = sulphates, y = quality),
+       data = red_wine) +
+  geom_jitter(alpha = 0.25) +
+  xlab('sulphates(g / dm^3)')
+  
+
+```
+
+Do a log10 transformation and only check the 95% of sulphates data to see if
+the shape will be better.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plots_sulphates_log10}
+
+ggplot(aes(x = sulphates, y = quality), data = red_wine) +
+  geom_jitter(alpha = 0.25) +
+  stat_summary(fun.y = mean, geom = 'line', color = 'red') +
+  scale_x_log10() +
+  xlab('sulphates(log10)(g / dm^3)') +
+  coord_cartesian(xlim = c(0.3, quantile(red_wine$sulphates, 0.95)))
+  
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_summary_sulphates_quality}
+
+by(red_wine$sulphates, red_wine$quality, summary)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, correlation_sulphates_quality}
+
+cor.test(red_wine$sulphates, red_wine$quality)
+
+```
+
+
+It's very hard to tell if there is any relationship between the sulphates and
+quality from the first scatter plot. By log10 transformationSince most samples
+and look closer to the data(95%), we can see the mean quality is a slightly 
+trending up along with sulphate value. This is also surprising since I suppose
+higher quality has lower sulphate content. The correlation value is 0.251, which
+indicates a weak correlation.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plots_all_sulphates}
+
+ggplot(aes(x = all.sulphates, y = quality), binwidth = 30, data = red_wine) +
+  geom_jitter() +
+  scale_x_log10() +
+  xlim(min(red_wine$all.sulphates), quantile(red_wine$all.sulphates, 0.99)) +
+  xlab('all.sulphates(mg / dm^3)') +
+  geom_smooth() 
+  
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, correlation_all_sulphates_quality}
+
+cor.test(red_wine$all.sulphates, red_wine$quality)
+
+```
+
+It seems it's not good idea to combine sulphates and sulfur dioxide. With the
+combined sulphates I don't see there is any obvious correlation between 
+sulphates and quality, also the correlation value decreased from 0.251 to 0.21. 
+Maybe we should look sulphates and sulfur dioxide data separately.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_boxPlots_sulfur_dioxide}
+
+ggplot(aes(x = total.sulfur.dioxide, y = quality),
+       data = red_wine) +
+  geom_jitter() +
+  scale_x_log10() +
+  stat_summary(fun.y = mean, geom = 'line', color = 'red') +
+  xlab('total.sulfur.dioxide(mg / dm^3)')
+  
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_boxPlots_free_so2}
+
+ggplot(aes(x = free.sulfur.dioxide, y = quality),
+       data = red_wine) +
+  geom_jitter() +
+  scale_x_log10() +
+  stat_summary(fun.y = mean, geom = 'line', color = 'red') +
+  xlab('free.sulfur.dioxide(mg / dm^3)')
+  
+
+```
+
+
+yes, it looks either free sulfur dioxide or total sulfur dioxide content impact
+the quality much.  But Sulphates content does look be correlated, though not 
+strong, with the quality level. 
+
+
+From the pairs plot, I noticed there are some other interesting relationships
+between the attributes. For example fixed.acidity and pH, fixed.acidity and 
+density, fixed.acidity and citric.acid, free.sulfur.dioxide and 
+total.sulfur.dioxide. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_plots_acidity_pH}
+
+ggplot(aes(x = pH, y = fixed.acidity), data = red_wine) +
+  geom_point(alpha = 0.25) +
+  geom_smooth() +
+  ylab('fixed.acidity(g / dm^3)')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Correlation_pH_acidity}
+
+cor.test(red_wine$pH, red_wine$fixed.acidity)
+
+```
+
+
+Both the scatter plot and the Pearson's correlation test show there are 
+negative correlation between the pH and fixed.acidity. The higher pH the lower
+acidity. And the correlation is strong ( -0.683).
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_plots_free_total_s02}
+
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide),
+       data = red_wine) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = 'lm') +
+  xlab('free.sulfur.dioxide(mg / dm^3)') +
+  ylab('total.sulfur.dioxide(mg / dm^3)')
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Correlation_free_total_so2}
+
+cor.test(red_wine$free.sulfur.dioxide, red_wine$total.sulfur.dioxide)
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, lm_free_total_so2}
+# create a linear model
+
+m1 = lm(total.sulfur.dioxide ~ free.sulfur.dioxide, data = red_wine)
+mtable(m1, sdigits = 3)
+
+
+```
+
+
+The scatter plot and Pearson's correlation test both show there are 
+strong correlation between free sulfur dioxide content and total sulfur dioxide
+content. And it's close to a linear model. By creating the linear model however
+it can only explain 44.6% of the result. It looks it's not a strong 
+linear relationship.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_plots_alcohol_quality}
+
+ggplot(aes(x = alcohol, y = quality), data = red_wine) +
+  geom_jitter(alpha = 0.25) +
+  geom_smooth(method = 'lm')
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Correlation_alcohol_quality}
+
+cor.test(red_wine$alcohol, red_wine$quality)
+
+
+```
+
+
+Among all the attributes, alcohol has the strongest correlation (0.476) with 
+quality. I'm surprised since Alcohol is never mentioned in the articles I have 
+read.
+
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset
+
+From the pairs plot it looks all the attributes somewhat affect the quality. I 
+choosed to do some further investigation on the three attributes which I think 
+are most important, pH, sulphates and Alcohol. From the scatter plots, I 
+couldn't tell there is much correlation between pH and quality. But Sulphates 
+and Alcohol do have direct correlation with the wine's quality. The higer wine 
+quality is associated with higher sulphates. I'm confused on this finding since 
+I suppose the wine with higher quality should have less suphates. But the 
+range of suphates is very narrow(between 0.3 and 1). The higher quality 
+generally associated with higher alcohol content.
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+Yes. There are some interesting relationships between the attributes. 
+* There are negative correlation between fixed.acidity and pH, the higher pH 
+the lower acidity. 
+* Between free.sulfur.dioxide and total.sulfur.dioxide, Generally higher free 
+sulfur dioxide higher total sulfur dioxide. This is easy to understand.
+
+### What was the strongest relationship you found?
+
+The strongest relationship I found is between attribute fixed.acidity and pH. 
+Its correlation value is -0.6829782.
+
+
+# Multivariate Plots Section
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, quality.bucket}
+
+red_wine$quality.bucket <- cut(red_wine$quality, breaks = c(2, 4, 6, 8))
+
+table(red_wine$quality.bucket)
+
+```
+
+
+Quality rates are categorized into 3 buckets: (2,4] low quality; (4,6] Medium
+quality; (6, 8] high quality to assist the analysis of  multiple variables.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_pH_acidity_quality_bucket}
+
+ggplot(aes(x = pH, y = fixed.acidity), data = red_wine) +
+  geom_jitter(aes(color = quality.bucket)) +
+  geom_smooth(method = 'lm', aes(color = quality.bucket)) +
+  ylab('fixed.acidity(g / dm^3)')
+  
+
+```
+
+
+It shows the pH and fixed acidity have negative correlation in all three 
+quality buckets. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_free_total_sulfur_dioxide_quality}
+
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide),
+       data = red_wine) +
+  geom_jitter(aes(color = quality.bucket)) +
+  geom_smooth(method = 'lm', aes(color = quality.bucket)) +
+  xlab('free.sulfur.dioxide(mg / dm^3)') +
+  ylab('total.sulfur.dioxide(mg / dm^3)')
+  
+
+```
+
+
+It shows the free sulfur dioxide and total sulfur dioxide have positive 
+correlation in all three quality buckets.  
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_pH_quality_acidity}
+
+ggplot(aes(x = pH, y = quality, color = fixed.acidity),
+       data = red_wine) +
+  geom_jitter(alpha = 0.5) + 
+  scale_color_distiller(type = 'div') +
+  ggtitle('Wine quality with pH by fixed aciditity')
+
+```
+
+
+I can't tell there is much correlation between pH and quality from this 
+scatter plot. But after adding the fixed acidity, we can see higher fixed 
+acidity is on the left, associated with lower pH. It's becauase fixed acidity 
+are negatively correlated with pH.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_pH_alcohol_quality}
+
+ggplot(aes(x = alcohol, y = quality, color = pH),
+       data = red_wine) +
+  geom_jitter(alpha = 0.5) +
+  scale_color_distiller(type = 'div') +
+  ggtitle('Wine quality with alcohol by pH')
+  
+
+```
+
+
+The correlation between alcohol and quality is supposed to be the strongest
+comparing to other attributes. By adding pH, we can see different pH levels 
+spread the whole plot. But it looks higher pH cluster more on higher
+percent alcohol side. And lower pH culster more on lower percent alcohol side.
+The pair plots show pH and Alcohol's col value is 0.206. So they are somewhat 
+correlated.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_sulphates_quality_pH}
+
+ggplot(aes(x = sulphates, y = quality, color = pH),
+       data = red_wine) +
+  geom_jitter(alpha = 0.5) +
+  scale_x_log10() +
+  xlab('sulphates(log10)(mg / dm^3)') +
+  scale_color_distiller(type = 'div') +
+  ggtitle('Wine quality with sulphates by pH')
+  
+
+```
+
+
+In the bivariate plots we have concluded sulphates and quality are correlated.
+In this plot after adding pH, we can see samples with different pH spread 
+everywhere. Again it seems pH doesn't have much correlation with quality. From
+this plot, it's interesting to see the samples with sulphates higher than 1 
+generally have lower pH and associated with quality level lower than 6.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_plots_alcohol_sulphates_quality}
+
+ggplot(aes(x = alcohol, y = quality, color = sulphates),
+       data = red_wine) +
+  geom_jitter(alpha = 0.5) +
+  scale_color_distiller(type = 'div') +
+  ggtitle('Wine quality with alcohol by sulphates')
+  
+
+```
+
+
+Both alcohol and sulphates have positive correlation with quality.  When 
+putting these three variables together, it looks there is a mild trend of higher
+alcohol, higer sulphates(under 1) have higher quality. But the correlation is 
+not strong. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE,multivariate_lm}
+
+m1 <- lm(quality ~ alcohol, data = red_wine)
+m2 <- update(m1, ~ . + pH)
+m3 <- update(m2, ~ . + I(log(sulphates)))
+m4 <- update(m3, ~ . + volatile.acidity)
+mtable(m1, m2, m3, m4, sdigits = 3)
+
+```
+
+
+The variables in this linear model can only account to 34.9% of the variance
+in the quality of red wine. We continue to do the log transformation on 
+Sulphates.
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+To be honest, I don't see any attribute has strong correlation with quality.
+It's hard to say which attribute is most critical to predict the wine's quality.
+Though from correlation coefficient's perspective, the alcohol is most 
+correlated with quality, the corrlation is still not strong.
+
+But when putting alcohol, sulphates and quality in the same plot, we can see 
+generally the samples with higher alcohol and higher sulphates(but lower than 1)
+has the trend to be higher quality. This is reasonable because both alcohol and
+sulphate (under 1) have positive correlation with quality.
+
+
+
+### Were there any interesting or surprising interactions between features?
+pH seems can't predict the quality at all. While doing the research to 
+understand what might contribute to wine's quality, pH seems always be the top 
+one. I suppose the plot should show some correlation between pH and quality. But
+no matter where I add pH it spreads everywhere. 
+
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the \
+strengths and limitations of your model.
+Yes, I created a linear model that included alcohol, sulphates, pH and volatile
+acidity variables and wine quality as the output variable. The
+limitation of this linear model is that variables in this linear model can only 
+account for 34.9% of the variance in the quality of red wine. The strengths is
+that we can still tell some correlations between the predictors and output
+variable and by adding additonal variable we got higher r-squared value.
+
+------
+
+# Final Plots and Summary
+
+
+### Plot One
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, Plot_One}
+
+ggplot(aes(x = pH, y = quality, binwidth = 0.1),
+       data = red_wine) +
+  geom_jitter(alpha = 0.25) +
+  scale_x_continuous(limits = c(quantile(red_wine$pH, 0.01), 
+                                quantile(red_wine$pH, 0.99))) +
+  geom_line(stat = 'summary', fun.y = median, color = 'red') +
+  geom_smooth() +
+  ggtitle('Wine quality by pH')
+
+```
+
+
+### Description One
+
+This Plot shows the relationship between pH and quality. I excluded the samples
+with bottom 1% and top 1% of pH to explain the majority of samples to avoid
+the interrupt of extreme cases. Though there is no direct correlation between pH
+and quality, we can see pH is mostly between 3.1 and 3.5 for the samples with 
+high quality(7 or 8). Since the majority samples' pH is between 3.0 and 3.7, 
+the range is narrow. Maybe that can also explain why we don't see much 
+correlation between pH and quality. When pH is above 3.6, we can see there are
+few samples with high quality. If the pH's range is bigger, maybe we can see its
+impact on the quality.
+
+### Plot Two
+
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, Plot_Two}
+
+ggplot(aes(x = pH, y = fixed.acidity),
+       data = red_wine) +
+  geom_jitter(aes(color = quality.bucket)) +
+  geom_smooth(method = 'lm', aes(color = quality.bucket)) +
+  ggtitle('Fixed acidity by pH and quality bucket') +
+  ylab('fixed acidity(g / dm^3)')
+
+```
+
+### Description Two
+
+The plot above shows the correlation between pH and fixed acidity. The
+correlation between these two attributes are the strongest among all the
+attributes. I split the quality level into 3 buckets:(2,4],(4, 6], (6, 8]. It's 
+interesting to see that if we use lm smoothing method, the slope of higher 
+quality is steeper than the lower quality.
+
+
+### Plot Three
+
+```{r echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, Plot_Three}
+
+ggplot(aes(x = alcohol, y = quality, color = sulphates),
+       data = red_wine) +
+  geom_jitter(alpha = 0.5) +
+  scale_x_continuous(limits = c(min(red_wine$alcohol), 
+                                quantile(red_wine$alcohol, 0.99))) +
+  scale_color_distiller(type = 'div') +
+  geom_smooth() +
+  ggtitle('Wine quality by alcohol and sulphates') +
+  xlab('alcohol(%)')
+
+```
+
+### Description Three
+
+Both alcohol and sulphates have positive correlation with quality.  When putting 
+these three variables together, we can see there is a mild trend: higher alcohol,
+higer sulphates(under 1) have higher quality. But the correlation is not strong.
+Also, there are few samples have sulphates higher than 1.0. 
+
+------
+
+# Reflection
+
+When I started to explore the red wine dataset, I was very confused on what each
+variable means since I'm not familiar with wine at all. I did some research on 
+google and read some articles to get better understanding. According to some 
+articles, I believe pH and Sulphates are the most important attributes that 
+impact the quality. So I decided to focus on the relationship between these two 
+attributes and quality.
+
+However, I was surprised I didn't see strong correlations between them and 
+quality at all, especially pH. In the plots sulphates shows mild positive
+correlation with quality(corr is 0.251). I had been thinking why this happened 
+during the whole exploration. Surprisingly, Alcohol shows the strong correlation
+with quality among all the attributes(corr is 0.476). 
+
+After I explore more and more, I think the reason this happened is because that
+there is some limitation on the dataset. There are 1599 samples in total. And 
+1,319 out of 1,599 received a score of 5 or 6. No sample received scores of 0, 
+1, 9, or 10. Since the wine quality variable had such limited variability, it 
+was difficult to assess the relationship between quality and the chemical 
+attribute variables. If we have a greater variety of quality ratings we might 
+get a better insight on how these attributes are related with quality.
+Also, quality rating is based on sensory data (median of at least 3 evaluations 
+made by wine experts). It's difficult to accurately describe and quantify. 
+
+Besides the attributes in the dataset, there are some other aspects that impact
+the quality, like the type of grape, the place and climate where the grape grow
+etc. There is another dataset of white wine, which I would like to do another
+exploration to compare with the data of red wine to see if there is any different
+pattern.
+
+
+
+# Reference documents:
+
+http://www.wineskills.co.uk/winemaking/winemaking-knowledge-base/sulphur-dioxide
+
+http://winemakersacademy.com/importance-ph-wine-making/
